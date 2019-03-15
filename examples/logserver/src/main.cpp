@@ -17,30 +17,30 @@
  */
 
 #include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <thread>
-#include <chrono>
-#include <ctime>
-#include <cxxabi.h>
 
-#include <boost/algorithm/hex.hpp>
-
-#include "lesf/core/core.h"
-#include "lesf/ipc/ipc.h"
 #include "lesf/log/log.h"
+#include "lesf/daemon/daemon.h"
 
 using namespace lesf;
+
+namespace lesf { namespace daemon { namespace Defaults {
+    const char* LogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".daemon_log.";
+    const char* LockFile = "/var/run/" LESF_USER_PROGRAM;
+} } }
+
+namespace lesf { namespace log { namespace Defaults {
+    const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback_log.";
+} } }
 
 namespace outputs {
 
     template <typename formatterT>
-    class Stdout : public log::Server::Subscriber
+    class Ostream : public log::Server::Subscriber
     {
     public:
-        Stdout(log::Server& server) :
+        Ostream(log::Server& server, std::ostream& os) :
             log::Server::Subscriber(server),
-            m_fmt(std::cout)
+            m_fmt(os)
         {}
 
     private:
@@ -81,32 +81,40 @@ namespace outputs {
 
 }
 
-int main(int argc, char** argv)
+class LogService : public daemon::Service
 {
-    log::Server srv;
-    outputs::Stdout<log::formatters::plain_light> out_plain(srv);
-    outputs::String<log::formatters::raw> out_raw(srv);
-
-    try {
-        log::Logger::init(argc, argv);
-
-        LESF_LOG_TRACE("yolo " << 5976);
-
-        try {
-            LESF_CORE_THROW(ipc::SharedMemoryException, "prout");
-        } catch (core::Exception const& exc) {
-            LESF_LOG_TRACE_WITH_EXCEPT(exc, "exception caught");
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    } catch (core::Exception const& exc) {
-        std::cerr << exc.what() << std::endl;
-        std::cerr << exc.debugInfo().trace << std::endl;
-    } catch (std::exception const& exc) {
-        std::cerr << "oulala" << std::endl;
+public:
+    LogService() :
+        m_server(new log::Server()),
+        m_out(*m_server, std::cout)
+    {
     }
 
-    std::cerr << (std::string) out_raw;
+    ~LogService()
+    {}
 
-    return 0;
+    void run() noexcept
+    {
+        while (m_server);
+    }
+
+    void restart()
+    {
+
+    }
+
+    void stop()
+    {
+        delete m_server;
+        m_server = 0;
+    }
+
+private:
+    log::Server* m_server;
+    outputs::Ostream<log::formatters::plain_light> m_out;
+};
+
+int main(int argc, char** argv)
+{
+    daemon::daemonize([]() { return new LogService(); });
 }

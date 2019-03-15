@@ -112,10 +112,10 @@ void plain_light::operator()(Message const& msg)
                 if (p == std::string::npos || p == trace.size()-1)
                     break;
 
-                trace.replace(p, 2, std::string("\n") + indent + indent);
+                trace.replace(p, 1, std::string("\n") + indent + indent);
             } while (p != std::string::npos);
 
-            M_os() << indent << indent << std::string(trace.begin()+1, trace.end());
+            M_os() << indent << indent << std::string(trace.begin(), trace.end()-1);
         }
         else
             M_os() << indent << "no stack trace available";

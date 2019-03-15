@@ -1,3 +1,5 @@
 *.sublime-workspace
 bin/
 obj/
+**/bin/
+**/obj/

@@ -101,7 +101,8 @@ public:
     // This function is specified as noexcept and handles exceptions when creating
     //  the internal log::Client for remote logging, but if we fail to create
     //  the logger instance log::Logger::m_inst, the program will terminate.
-    static void init(int argc, char** argv, unsigned short port = Defaults::ServerPort) noexcept;
+    static void init(int argc, char** argv, unsigned short port = Defaults::ServerPort,
+                     const char* fallback_log_file_prefix = Defaults::FallbackLogFilePrefix) noexcept;
 
     // Log a message. If the remote client could be created, send it over here.
     // If there's any problem, try to log the message in the fallback file, otherwise
@@ -116,7 +117,7 @@ public:
     static Message::ProcessInfo getProcessInfo();
 
 private:
-    Logger(int argc, char** argv, unsigned short port);
+    Logger(int argc, char** argv, unsigned short port, const char* fallback_log_file_prefix);
     ~Logger();
 
     static void M_maybeInstanciate();

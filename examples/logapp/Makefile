@@ -32,22 +32,20 @@ DOX_DIR  = doxygen
 C_EXT    = cpp
 S_EXT    = S
 H_EXT    = h
-SUBDIRS  = examples/logserver examples/logapp
+SUBDIRS  =
 
 # Configuration
 BUILD_ID      := $(shell $(UUIDGEN))
 
-PRODUCT        = libesf.so
+PRODUCT        = logapp
 DEFINES        = -DLESF_USER_PROGRAM=\"$(PRODUCT)\"
 DEFINES       += -DLESF_USER_BUILD_ID=\"$(BUILD_ID)\"
 DEFINES       += -DLESF_USER_VERSION=\"1.0\"
 
-CC_FLAGS       = -fPIC -O0 -g -ggdb
+CC_FLAGS       = -O0 -g -ggdb
 CC_FLAGS      += -Wno-unused-parameter
-CC_FLAGS      += -Icontrib/libconf/include
-LD_FLAGS       = -shared
-LD_FLAGS      += -Lcontrib/libconf/bin -lconf
-LD_FLAGS      += -lboost_system -lboost_stacktrace_backtrace -ldl -lbacktrace -lrt -lpthread
+CC_FLAGS      += -I../../contrib/libconf/include -I../../inc
+LD_FLAGS      += -L../../bin -lesf
 
 # Mandatory CC flags
 CC_FLAGS += -std=c++11
@@ -91,7 +89,7 @@ DIST          = $(BIN_DIR)/$(PRODUCT).tar.gz
 # Top-level
 all: binary
 
-binary: $(LD_SCRIPT) $(BINARY) subdirs
+binary: $(LD_SCRIPT) subdirs $(BINARY)
 
 .PHONY: doxygen
 doxygen:

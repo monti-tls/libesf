@@ -16,21 +16,17 @@
  * along with libesf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LESF_LOG_DEFAULTS_H__
-#define __LESF_LOG_DEFAULTS_H__
+#ifndef __LESF_DAEMON_DEFAULTS_H__
+#define __LESF_DAEMON_DEFAULTS_H__
 
-namespace lesf { namespace log {
+namespace lesf { namespace daemon {
 
 namespace Defaults
 {
-    enum : unsigned short
-    {
-        ServerPort = 50001U,
-    };
-
-    extern const char* FallbackLogFilePrefix;
+    extern const char* LogFilePrefix;
+    extern const char* LockFile;
 };
 
 } }
 
-#endif // __LESF_LOG_DEFAULTS_H__
+#endif // __LESF_DAEMON_DEFAULTS_H__

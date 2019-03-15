@@ -16,21 +16,17 @@
  * along with libesf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LESF_LOG_DEFAULTS_H__
-#define __LESF_LOG_DEFAULTS_H__
+#ifndef __LESF_DAEMON_DAEMONIZE_H__
+#define __LESF_DAEMON_DAEMONIZE_H__
 
-namespace lesf { namespace log {
+#include <functional>
 
-namespace Defaults
-{
-    enum : unsigned short
-    {
-        ServerPort = 50001U,
-    };
+#include "lesf/daemon/service.h"
 
-    extern const char* FallbackLogFilePrefix;
-};
+namespace lesf { namespace daemon {
+
+void daemonize(std::function<Service*()> const& ctor) __attribute__((noreturn));
 
 } }
 
-#endif // __LESF_LOG_DEFAULTS_H__
+#endif // __LESF_DAEMON_DAEMONIZE_H__

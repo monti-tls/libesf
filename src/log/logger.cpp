@@ -39,9 +39,9 @@ public:
 Logger* Logger::m_inst = 0;
 static Logger::AutoDeleter m_inst_autodelete;
 
-void Logger::init(int argc, char** argv, unsigned short port) noexcept
+void Logger::init(int argc, char** argv, unsigned short port, const char* fallback_log_file_prefix) noexcept
 {
-    m_inst = new Logger(argc, argv, port);
+    m_inst = new Logger(argc, argv, port, fallback_log_file_prefix);
 
     try {
         m_inst->m_remote = new Client(port);
@@ -73,7 +73,7 @@ void Logger::log(Message const& msg) noexcept
     }
     else
     {
-        m_inst->m_fallback << "Failed to send log message because (failed client creation)."
+        m_inst->m_fallback << "Failed to send log message (no remote client)."
                            << std::endl << "Serialized message follows :" << std::endl
                            << Message::serialize(msg) << std::endl << std::endl;
         m_inst->m_fallback.flush();
@@ -98,12 +98,12 @@ void Logger::log(std::exception const& exc, const char* msg_type, const char* ms
 Message::ProcessInfo Logger::getProcessInfo()
 {
     if (m_inst && m_inst->m_argv)
-        return Message::ProcessInfo{m_inst->m_argv[0], m_inst->m_pid};
+        return Message::ProcessInfo{m_inst->m_argc ? m_inst->m_argv[0] : "<no argv[0]>", m_inst->m_pid};
 
     return Message::ProcessInfo();
 }
 
-Logger::Logger(int argc, char** argv, unsigned short port) :
+Logger::Logger(int argc, char** argv, unsigned short port, const char* fallback_log_file_prefix) :
     m_remote_port(port),
     m_argc(argc),
     m_argv(argv),
@@ -111,7 +111,7 @@ Logger::Logger(int argc, char** argv, unsigned short port) :
     m_remote(0)
 {
     std::ostringstream fn;
-    fn << Defaults::FallbackLogFilePrefix << m_pid;
+    fn << fallback_log_file_prefix << m_pid;
     m_fallback_fn = fn.str();
 
     m_fallback.open(m_fallback_fn, std::ios::out | std::ios::app);
@@ -139,7 +139,7 @@ void Logger::M_maybeInstanciate()
     bool okay = m_inst;
     if (!okay)
     {
-        m_inst = new Logger(0, 0, Defaults::ServerPort);
+        m_inst = new Logger(0, 0, Defaults::ServerPort, Defaults::FallbackLogFilePrefix);
 
         LESF_LOG_WARNING("lesf::Logger::log() called before lesf::log::Logger::init(), "
                          "starting log client with default parameters and no process information.");
