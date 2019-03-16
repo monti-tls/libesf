@@ -18,19 +18,11 @@
 
 #include <iostream>
 
-#include "lesf/log/log.h"
-#include "lesf/daemon/daemon.h"
+#include "lesf/lesf.h"
 
 using namespace lesf;
 
-namespace lesf { namespace daemon { namespace Defaults {
-    const char* LogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".daemon_log.";
-    const char* LockFile = "/var/run/" LESF_USER_PROGRAM;
-} } }
-
-namespace lesf { namespace log { namespace Defaults {
-    const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback_log.";
-} } }
+LESF_CONFIG_SYMBOLS()
 
 namespace outputs {
 

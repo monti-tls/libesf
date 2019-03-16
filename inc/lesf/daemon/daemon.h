@@ -19,7 +19,8 @@
 #ifndef __LESF_DAEMON_H__
 #define __LESF_DAEMON_H__
 
-#include "lesf/daemon/defaults.h"
+#include "lesf/daemon/config.h"
+#include "lesf/daemon/service.h"
 #include "lesf/daemon/daemonize.h"
 
 #endif // __LESF_DAEMON_H__

@@ -32,22 +32,24 @@ DOX_DIR  = doxygen
 C_EXT    = cpp
 S_EXT    = S
 H_EXT    = h
-SUBDIRS  = examples/logserver examples/logapp
+
+# User config
+include Makefile.inc
+
+ifeq ($(PRODUCT),)
+    $(error "Makefile.inc should define PRODUCT")
+endif
+
+ifeq ($(VERSION),)
+    $(error "Makefile.inc should define VERSION")
+endif
 
 # Configuration
 BUILD_ID      := $(shell $(UUIDGEN))
 
-PRODUCT        = libesf.so
 DEFINES        = -DLESF_USER_PROGRAM=\"$(PRODUCT)\"
 DEFINES       += -DLESF_USER_BUILD_ID=\"$(BUILD_ID)\"
-DEFINES       += -DLESF_USER_VERSION=\"1.0\"
-
-CC_FLAGS       = -fPIC -O0 -g -ggdb
-CC_FLAGS      += -Wno-unused-parameter
-CC_FLAGS      += -Icontrib/libconf/include
-LD_FLAGS       = -shared
-LD_FLAGS      += -Lcontrib/libconf/bin -lconf
-LD_FLAGS      += -lboost_system -lboost_stacktrace_backtrace -ldl -lbacktrace -lrt -lpthread
+DEFINES       += -DLESF_USER_VERSION=\"$(VERSION)\"
 
 # Mandatory CC flags
 CC_FLAGS += -std=c++11
@@ -89,9 +91,11 @@ BINARY        = $(BIN_DIR)/$(PRODUCT)
 DIST          = $(BIN_DIR)/$(PRODUCT).tar.gz
 
 # Top-level
-all: binary
+.NOTPARALLEL: all
+all: binary  subdirs
 
-binary: $(LD_SCRIPT) $(BINARY) subdirs
+.PHONY: binary
+binary: $(LD_SCRIPT) $(BINARY)
 
 .PHONY: doxygen
 doxygen:

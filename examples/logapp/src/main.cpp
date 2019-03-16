@@ -19,20 +19,11 @@
 #include <iostream>
 #include <functional>
 
-#include "lesf/core/core.h"
-#include "lesf/log/log.h"
-#include "lesf/ipc/ipc.h"
+#include "lesf/lesf.h"
+
+LESF_CONFIG_SYMBOLS()
 
 using namespace lesf;
-
-namespace lesf { namespace daemon { namespace Defaults {
-    const char* LogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".daemon_log.";
-    const char* LockFile = "/var/run/" LESF_USER_PROGRAM;
-} } }
-
-namespace lesf { namespace log { namespace Defaults {
-    const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback_log.";
-} } }
 
 class MyLocalExceptionType : public core::RecoverableException
 {

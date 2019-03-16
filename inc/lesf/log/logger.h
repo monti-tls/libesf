@@ -20,7 +20,7 @@
 #define __LESF_LOG_LOGGER_H__
 
 #include "lesf/core/exception.h"
-#include "lesf/log/defaults.h"
+#include "lesf/log/config.h"
 #include "lesf/log/message.h"
 #include "lesf/log/client.h"
 
@@ -101,8 +101,8 @@ public:
     // This function is specified as noexcept and handles exceptions when creating
     //  the internal log::Client for remote logging, but if we fail to create
     //  the logger instance log::Logger::m_inst, the program will terminate.
-    static void init(int argc, char** argv, unsigned short port = Defaults::ServerPort,
-                     const char* fallback_log_file_prefix = Defaults::FallbackLogFilePrefix) noexcept;
+    static void init(int argc, char** argv, unsigned short port = Config::ServerPort,
+                     const char* fallback_log_file_prefix = Config::FallbackLogFilePrefix) noexcept;
 
     // Log a message. If the remote client could be created, send it over here.
     // If there's any problem, try to log the message in the fallback file, otherwise

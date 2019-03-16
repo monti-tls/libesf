@@ -19,7 +19,7 @@
 #ifndef __LESF_LOG_CLIENT_H__
 #define __LESF_LOG_CLIENT_H__
 
-#include "lesf/log/defaults.h"
+#include "lesf/log/config.h"
 
 #include <string>
 #include <deque>
@@ -44,7 +44,7 @@ private:
     class Internals; // Used to hide boost::asio stuff from this header
 
 public:
-    Client(unsigned short port = Defaults::ServerPort, std::string const& server = "localhost");
+    Client(unsigned short port = Config::ServerPort, std::string const& server = "localhost");
     ~Client();
 
     Client(Client const&) = delete;

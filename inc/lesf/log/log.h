@@ -19,7 +19,7 @@
 #ifndef __LESF_LOG_H__
 #define __LESF_LOG_H__
 
-#include "defaults.h"
+#include "config.h"
 #include "message.h"
 #include "server.h"
 #include "client.h"

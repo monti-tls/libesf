@@ -16,12 +16,12 @@
  * along with libesf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LESF_LOG_DEFAULTS_H__
-#define __LESF_LOG_DEFAULTS_H__
+#ifndef __LESF_LOG_CONFIG_H__
+#define __LESF_LOG_CONFIG_H__
 
 namespace lesf { namespace log {
 
-namespace Defaults
+namespace Config
 {
     enum : unsigned short
     {
@@ -31,6 +31,11 @@ namespace Defaults
     extern const char* FallbackLogFilePrefix;
 };
 
+#define LESF_LOG_CONFIG_SYMBOLS() \
+    namespace lesf { namespace log { namespace Config { \
+        const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback_log."; \
+    } } }
+
 } }
 
-#endif // __LESF_LOG_DEFAULTS_H__
+#endif // __LESF_LOG_CONFIG_H__

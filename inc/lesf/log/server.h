@@ -22,7 +22,7 @@
 #include <string>
 #include <set>
 
-#include "lesf/log/defaults.h"
+#include "lesf/log/config.h"
 #include "lesf/log/message.h"
 
 namespace lesf { namespace log {
@@ -55,7 +55,7 @@ private:
     class Internals; // Used to hide boost::asio stuff from this header
 
 public:
-    Server(unsigned short port = Defaults::ServerPort);
+    Server(unsigned short port = Config::ServerPort);
     ~Server();
 
     Server(Server const&) = delete;

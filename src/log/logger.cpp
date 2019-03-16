@@ -139,7 +139,7 @@ void Logger::M_maybeInstanciate()
     bool okay = m_inst;
     if (!okay)
     {
-        m_inst = new Logger(0, 0, Defaults::ServerPort, Defaults::FallbackLogFilePrefix);
+        m_inst = new Logger(0, 0, Config::ServerPort, Config::FallbackLogFilePrefix);
 
         LESF_LOG_WARNING("lesf::Logger::log() called before lesf::log::Logger::init(), "
                          "starting log client with default parameters and no process information.");

@@ -17,7 +17,7 @@
  */
 
 #include "lesf/daemon/daemonize.h"
-#include "lesf/daemon/defaults.h"
+#include "lesf/daemon/config.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -50,7 +50,7 @@ static void daemon_try_cleanup()
 {
     lockf(daemon_data.lockfile_fd, F_ULOCK, 0);
     close(daemon_data.lockfile_fd);
-    unlink(Defaults::LockFile);
+    unlink(Config::LockFile);
 }
 
 static void daemon_signal_handler(int signo)
@@ -137,14 +137,14 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     char pid_str[256];
     sprintf(pid_str, "%d\n", daemon_data.pid);
 
-    std::size_t logfile_len = strlen(Defaults::LogFilePrefix) + strlen(pid_str);
+    std::size_t logfile_len = strlen(Config::LogFilePrefix) + strlen(pid_str);
 
     char* logfile_fn = (char*) malloc(logfile_len+1);
     if (!logfile_fn)
         exit(EXIT_FAILURE);
 
-    strcpy(logfile_fn, Defaults::LogFilePrefix);
-    strcpy(logfile_fn + strlen(Defaults::LogFilePrefix), pid_str);
+    strcpy(logfile_fn, Config::LogFilePrefix);
+    strcpy(logfile_fn + strlen(Config::LogFilePrefix), pid_str);
     logfile_fn[logfile_len-1] = '\0';
 
     // Redirect stdios
@@ -158,7 +158,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     free(logfile_fn);
 
     // Create lockfile
-    daemon_data.lockfile_fd = open(Defaults::LockFile, O_RDWR | O_CREAT, 0640);
+    daemon_data.lockfile_fd = open(Config::LockFile, O_RDWR | O_CREAT, 0640);
     if (daemon_data.lockfile_fd < 0)
     {
         std::cout << "lesf::daemon::daemonize: failed to create pid lockfile (";

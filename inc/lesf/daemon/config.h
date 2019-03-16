@@ -16,17 +16,23 @@
  * along with libesf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LESF_DAEMON_DEFAULTS_H__
-#define __LESF_DAEMON_DEFAULTS_H__
+#ifndef __LESF_DAEMON_CONFIG_H__
+#define __LESF_DAEMON_CONFIG_H__
 
 namespace lesf { namespace daemon {
 
-namespace Defaults
+namespace Config
 {
     extern const char* LogFilePrefix;
     extern const char* LockFile;
 };
 
+#define LESF_DAEMON_CONFIG_SYMBOLS() \
+    namespace lesf { namespace daemon { namespace Config { \
+        const char* LogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".daemon_log."; \
+        const char* LockFile = "/var/run/" LESF_USER_PROGRAM; \
+    } } }
+
 } }
 
-#endif // __LESF_DAEMON_DEFAULTS_H__
+#endif // __LESF_DAEMON_CONFIG_H__
