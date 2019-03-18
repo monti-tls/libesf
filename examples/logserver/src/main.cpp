@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <mutex>
 
 #include "lesf/lesf.h"
 
@@ -80,6 +81,7 @@ public:
         m_server(new log::Server()),
         m_out(*m_server, std::cout)
     {
+        m_sync.lock();
     }
 
     ~LogService()
@@ -87,7 +89,7 @@ public:
 
     void run() noexcept
     {
-        while (m_server);
+        m_sync.lock();
     }
 
     void restart()
@@ -99,11 +101,13 @@ public:
     {
         delete m_server;
         m_server = 0;
+        m_sync.unlock();
     }
 
 private:
     log::Server* m_server;
     outputs::Ostream<log::formatters::plain_light> m_out;
+    std::mutex m_sync;
 };
 
 int main(int argc, char** argv)

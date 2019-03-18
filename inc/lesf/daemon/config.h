@@ -23,13 +23,13 @@ namespace lesf { namespace daemon {
 
 namespace Config
 {
-    extern const char* LogFilePrefix;
+    extern const char* LogFile;
     extern const char* LockFile;
 };
 
 #define LESF_DAEMON_CONFIG_SYMBOLS() \
     namespace lesf { namespace daemon { namespace Config { \
-        const char* LogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".daemon_log."; \
+        const char* LogFile = "/var/log/" LESF_USER_PROGRAM ".daemon_log"; \
         const char* LockFile = "/var/run/" LESF_USER_PROGRAM; \
     } } }
 

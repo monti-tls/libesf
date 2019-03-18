@@ -91,7 +91,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // fork() failed
     if (pid < 0)
     {
-        std::cerr << "lesf::daemon::daemonize: first fork() failed (" << strerror(errno) << ")" << std::endl;
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: fork() #1 failed (%m)");
         exit(EXIT_FAILURE);
     }
     // fork() succeeded : let the parent terminate
@@ -103,7 +103,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // Child becomes sessions leader
     if (setsid() < 0)
     {
-        std::cerr << "lesf::daemon::daemonize: setsid() failed (" << strerror(errno);
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: setsid() failed (%m)");
         std::cout << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -116,7 +116,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // Second fork() failed
     if (pid < 0)
     {
-        std::cerr << "lesf::daemon::daemonize: second fork() failed (" << strerror(errno);
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: fork() #2 failed (%m)");
         std::cout << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -128,51 +128,56 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
 
     // Set file permissions, change directory
     umask(0);
-    chdir("/");
 
-    // Get current pid
-    daemon_data.pid = getpid();
-
-    // Create log file name with pid suffix
-    char pid_str[256];
-    sprintf(pid_str, "%d\n", daemon_data.pid);
-
-    std::size_t logfile_len = strlen(Config::LogFilePrefix) + strlen(pid_str);
-
-    char* logfile_fn = (char*) malloc(logfile_len+1);
-    if (!logfile_fn)
+    if (chdir("/") < 0)
+    {
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: chdir() failed (%m)");
         exit(EXIT_FAILURE);
-
-    strcpy(logfile_fn, Config::LogFilePrefix);
-    strcpy(logfile_fn + strlen(Config::LogFilePrefix), pid_str);
-    logfile_fn[logfile_len-1] = '\0';
+    }
 
     // Redirect stdios
     close(0);
     close(1);
     close(2);
-    open("/dev/null", O_RDONLY);
-    open(logfile_fn, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    dup(1);
 
-    free(logfile_fn);
+    if (open("/dev/null", O_RDONLY) != 0)
+    {
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: open(\"/dev/null\") failed (%m), or yields incorrect fd no");
+        exit(EXIT_FAILURE);
+    }
+
+    if (open(Config::LogFile, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 1)
+    {
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: open(\"%s\") failed (%m), or yields incorrect fd no", Config::LogFile);
+        exit(EXIT_FAILURE);
+    }
+
+    if (dup(1) != 2)
+    {
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: dup(1) failed (%m), or yields incorrect fd no");
+        exit(EXIT_FAILURE);
+    }
 
     // Create lockfile
     daemon_data.lockfile_fd = open(Config::LockFile, O_RDWR | O_CREAT, 0640);
     if (daemon_data.lockfile_fd < 0)
     {
-        std::cout << "lesf::daemon::daemonize: failed to create pid lockfile (";
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: failed to create pid lockfile %s (%m)", Config::LockFile);
+        exit(EXIT_FAILURE);
+    }
+
+    // Lock it
+    if (lockf(daemon_data.lockfile_fd, F_TLOCK, 0) < 0)
+    {
+        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: failed to lock pid lockfile %s (%m)", Config::LockFile);
         std::cout << strerror(errno) << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    // Lock it file
-    if (lockf(daemon_data.lockfile_fd, F_TLOCK, 0) < 0)
-    {
-        std::cout << "lesf::daemon::daemonize: failed to lock lockfile (";
-        std::cout << strerror(errno) << ")" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    // Get current pid
+    daemon_data.pid = getpid();
+    char pid_str[255];
+    snprintf(&pid_str[0], sizeof(pid_str), "%d", daemon_data.pid);
 
     // Write pid in lockfile
     write(daemon_data.lockfile_fd, pid_str, strlen(pid_str));
@@ -183,6 +188,19 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     signal(SIGHUP, &daemon_signal_handler);
     signal(SIGSEGV, &daemon_signal_handler);
     signal(SIGABRT, &daemon_signal_handler);
+
+    // Print header in logfile
+    {
+        time_t t = time(0);
+        struct tm *tm = localtime(&t);
+        char s[64];
+        strftime(s, sizeof(s), "%c", tm);
+
+        printf("\n============================================================\n");
+        printf("%s | new daemon invocation (pid %5d)\n", &s[0], daemon_data.pid);
+        printf("============================================================\n\n");
+        fflush(stdout);
+    }
 
     // Start service
     daemon_data.service = daemon_data.ctor();
