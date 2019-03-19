@@ -33,7 +33,7 @@ namespace Config
 
 #define LESF_LOG_CONFIG_SYMBOLS() \
     namespace lesf { namespace log { namespace Config { \
-        const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback_log."; \
+        const char* FallbackLogFilePrefix = "/var/log/" LESF_USER_PROGRAM ".fallback.log."; \
     } } }
 
 } }

@@ -91,7 +91,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // fork() failed
     if (pid < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: fork() #1 failed (%m)");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: fork() #1 failed (%m)");
         exit(EXIT_FAILURE);
     }
     // fork() succeeded : let the parent terminate
@@ -103,7 +103,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // Child becomes sessions leader
     if (setsid() < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: setsid() failed (%m)");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: setsid() failed (%m)");
         std::cout << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -116,7 +116,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // Second fork() failed
     if (pid < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: fork() #2 failed (%m)");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: fork() #2 failed (%m)");
         std::cout << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -131,7 +131,7 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
 
     if (chdir("/") < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: chdir() failed (%m)");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: chdir() failed (%m)");
         exit(EXIT_FAILURE);
     }
 
@@ -142,19 +142,19 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
 
     if (open("/dev/null", O_RDONLY) != 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: open(\"/dev/null\") failed (%m), or yields incorrect fd no");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: open(\"/dev/null\") failed (%m), or yields incorrect fd no");
         exit(EXIT_FAILURE);
     }
 
     if (open(Config::LogFile, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 1)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: open(\"%s\") failed (%m), or yields incorrect fd no", Config::LogFile);
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: open(\"%s\") failed (%m), or yields incorrect fd no", Config::LogFile);
         exit(EXIT_FAILURE);
     }
 
     if (dup(1) != 2)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: dup(1) failed (%m), or yields incorrect fd no");
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: dup(1) failed (%m), or yields incorrect fd no");
         exit(EXIT_FAILURE);
     }
 
@@ -162,14 +162,14 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     daemon_data.lockfile_fd = open(Config::LockFile, O_RDWR | O_CREAT, 0640);
     if (daemon_data.lockfile_fd < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: failed to create pid lockfile %s (%m)", Config::LockFile);
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: failed to create pid lockfile %s (%m)", Config::LockFile);
         exit(EXIT_FAILURE);
     }
 
     // Lock it
     if (lockf(daemon_data.lockfile_fd, F_TLOCK, 0) < 0)
     {
-        syslog(LOG_USER | LOG_ERR, "lesg::daemon::daemonize: failed to lock pid lockfile %s (%m)", Config::LockFile);
+        syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: failed to lock pid lockfile %s (%m)", Config::LockFile);
         std::cout << strerror(errno) << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
