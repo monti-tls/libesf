@@ -20,7 +20,7 @@
 #define __LESF_IPC_MESSAGE_H__
 
 #include "lconf/json.h"
-#include "lesf/ipc/preprocessor_magic.h"
+#include "lesf/core/preprocessor.h"
 
 namespace lesf { namespace ipc {
 
@@ -39,20 +39,20 @@ using namespace lconf;
 //
 // As long as specified members are compatible with libconf's type system,
 //   everything is fine.
-// Do NOT use any LESF_IPC_MAGIC_* macros, they're internal fuckery.
+// Do NOT use any LESF_CORE_PREPROCESSOR_* macros, they're internal fuckery.
 
 #define LESF_IPC_MESSAGE(class_name) \
 public: \
     class_name(lconf::json::Node* data) { ipc::Message::M_pull(data); }
 
-#define LESF_IPC_MAGIC_MEMBER(arg) \
+#define LESF_CORE_PREPROCESSOR_MEMBER(arg) \
     tpl.bind(#arg, arg);
 
 #define LESF_IPC_MEMBERS(...) \
 protected: \
     lconf::json::Template M_jsonTemplate() { \
         lconf::json::Template tpl; \
-        __VA_OPT__(LESF_IPC_MAGIC_EVAL(LESF_IPC_MAGIC_MAP(LESF_IPC_MAGIC_MEMBER, __VA_ARGS__))) \
+        __VA_OPT__(LESF_CORE_PREPROCESSOR_EVAL(LESF_CORE_PREPROCESSOR_MAP(LESF_CORE_PREPROCESSOR_MEMBER, __VA_ARGS__))) \
         return tpl; }
 
 // Base class for IPC messages with typed auto-serialiation and synthesis.
