@@ -27,6 +27,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <mutex>
 
 #define LESF_LOG_TRACE(fmt)   LESF_LOG(Trace, fmt)
 #define LESF_LOG_INFO(fmt)    LESF_LOG(Info, fmt)
@@ -123,6 +124,7 @@ private:
     static void M_maybeInstanciate();
 
 private:
+    static std::mutex m_mutex;
     static Logger* m_inst;
 
     unsigned short m_remote_port;

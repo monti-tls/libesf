@@ -141,6 +141,8 @@ Endpoint::~Endpoint()
     // Delete shared memory object if we own it
     if (m_role == Server)
     {
+        m_shared->data->client_mutex.lock(); // wait for client to be done with the current operation, if any
+        m_shared->data->client_mutex.unlock();
         m_shared->data->~SharedData();
     }
     // Otherwise, allow other clients to connect by releasing the client mutex
@@ -224,7 +226,7 @@ void Endpoint::M_receiveThread()
                 if (it == m_slots.end())
                     LESF_CORE_THROW(DataFormatException, "IPC message type `" + type_id + "`is not connected to any slot");
                 
-                it->second(*msg);
+                it->second(*this, *msg);
             } catch (core::RecoverableException const& exc) {
                 if (m_exc_handler)
                     (*m_exc_handler)(exc);

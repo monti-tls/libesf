@@ -16,36 +16,25 @@
  * along with libesf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LESF_IPC_EXCEPTION_H__
-#define __LESF_IPC_EXCEPTION_H__
+#include "lesf/ipc/action_server.h"
 
-#include <stdexcept>
-#include <sstream>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/algorithm/hex.hpp>
 
-#include "lesf/core/exception.h"
+using namespace lesf::ipc;
 
-namespace lesf { namespace ipc {
+ActionServer::ActionServer(Endpoint& ep) :
+    m_ep(ep)
+{}
 
-class SharedMemoryException : public core::RecoverableException
+ActionServer::~ActionServer()
+{}
+
+std::string ActionServer::generateId()
 {
-    using core::RecoverableException::RecoverableException;
-};
-
-class TypeException : public core::RecoverableException
-{
-    using core::RecoverableException::RecoverableException;
-};
-
-class DataFormatException : public core::RecoverableException
-{
-    using core::RecoverableException::RecoverableException;
-};
-
-class BadActionId : public core::RecoverableException
-{
-    using core::RecoverableException::RecoverableException;
-};
-
-} }
-
-#endif // __LESF_IPC_EXCEPTION_H__
+    boost::uuids::uuid u = boost::uuids::random_generator()();
+    std::string as_hex;
+    boost::algorithm::hex(u.begin(), u.end(), std::back_inserter(as_hex));
+    return std::move(as_hex);
+}

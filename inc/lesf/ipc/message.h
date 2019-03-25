@@ -45,14 +45,14 @@ using namespace lconf;
 public: \
     class_name(lconf::json::Node* data) { ipc::Message::M_pull(data); }
 
-#define LESF_CORE_PREPROCESSOR_MEMBER(arg) \
+#define LESF_IPC_MEMBERS_IMPL_EACH(arg) \
     tpl.bind(#arg, arg);
 
 #define LESF_IPC_MEMBERS(...) \
 protected: \
     lconf::json::Template M_jsonTemplate() { \
         lconf::json::Template tpl; \
-        __VA_OPT__(LESF_CORE_PREPROCESSOR_EVAL(LESF_CORE_PREPROCESSOR_MAP(LESF_CORE_PREPROCESSOR_MEMBER, __VA_ARGS__))) \
+        __VA_OPT__(LESF_CORE_PREPROCESSOR_EVAL(LESF_CORE_PREPROCESSOR_MAP(LESF_IPC_MEMBERS_IMPL_EACH, __VA_ARGS__))) \
         return tpl; }
 
 // Base class for IPC messages with typed auto-serialiation and synthesis.

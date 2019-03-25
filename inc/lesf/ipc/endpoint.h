@@ -49,6 +49,9 @@ public:
     // If role == ipc::Endpoint::Server, throws if name is already used
     // If role == ipc::Endpoint::Client, throws if another client is already connected
     Endpoint(Role role, std::string const& name);
+
+    // Careful! The destructor of a Server endpoint will block until the client
+    //   is detroyed.
     ~Endpoint();
 
     // Send a message over the endpoint
@@ -60,10 +63,10 @@ public:
     //   - Discarded if no exception handler is registered
     //   - Passed as an argument to the registered exception handler
     template <typename T>
-    void registerSlot(std::function<void(T const&)> const& handler)
+    void registerSlot(std::function<void(Endpoint&, T const&)> const& handler)
     {
         auto id = MessageFactory::typeIdentifier<T>();
-        m_slots[id] = [handler](Message const& msg) { handler(dynamic_cast<T const&>(msg)); };
+        m_slots[id] = [handler](Endpoint& ep, Message const& msg) { handler(ep, dynamic_cast<T const&>(msg)); };
     }
 
     // Register an exception handler for the receiving thread.
@@ -85,7 +88,7 @@ private:
 
     SharedMem* m_shared;
     std::thread m_receive_thread;
-    std::map<std::string, std::function<void(Message const&)>> m_slots;
+    std::map<std::string, std::function<void(Endpoint&, Message const&)>> m_slots;
     std::function<void(core::RecoverableException const&)>* m_exc_handler;
 };
 

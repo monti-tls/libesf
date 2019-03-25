@@ -1,0 +1,12 @@
+ACTION(
+    camera,
+    SetZoom,
+    PARAMS(
+        _(int, foo),
+        _(std::string, bar)
+    ),
+    RESPONSE(
+        _(bool, baz),
+        _(float, bat)
+    )
+)

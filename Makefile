@@ -47,7 +47,7 @@ endif
 # Configuration
 BUILD_ID      := $(shell $(UUIDGEN))
 
-DEFINES        = -DLESF_USER_PROGRAM=\"$(PRODUCT)\"
+DEFINES       += -DLESF_USER_PROGRAM=\"$(PRODUCT)\"
 DEFINES       += -DLESF_USER_BUILD_ID=\"$(BUILD_ID)\"
 DEFINES       += -DLESF_USER_VERSION=\"$(VERSION)\"
 

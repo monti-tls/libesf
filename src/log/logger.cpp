@@ -37,10 +37,15 @@ public:
 };
 
 Logger* Logger::m_inst = 0;
+std::mutex Logger::m_mutex;
+
+
 static Logger::AutoDeleter m_inst_autodelete;
 
 void Logger::init(int argc, char** argv, unsigned short port, const char* fallback_log_file_prefix) noexcept
 {
+    std::lock_guard<std::mutex> lock(Logger::m_mutex);
+
     m_inst = new Logger(argc, argv, port, fallback_log_file_prefix);
 
     try {
@@ -57,6 +62,8 @@ void Logger::init(int argc, char** argv, unsigned short port, const char* fallba
 
 void Logger::log(Message const& msg) noexcept
 {
+    std::lock_guard<std::mutex> lock(Logger::m_mutex);
+
     M_maybeInstanciate();
 
     if (m_inst->m_remote)
@@ -82,6 +89,8 @@ void Logger::log(Message const& msg) noexcept
 
 void Logger::log(std::exception const& exc, const char* msg_type, const char* msg_fmt) noexcept
 {
+    std::lock_guard<std::mutex> lock(Logger::m_mutex);
+
     M_maybeInstanciate();
 
     //TODO: maybe try to send the information over to the remote server ?
