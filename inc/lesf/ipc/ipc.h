@@ -23,5 +23,6 @@
 #include "lesf/ipc/message.h"
 #include "lesf/ipc/message_factory.h"
 #include "lesf/ipc/endpoint.h"
+#include "lesf/ipc/action_server.h"
 
 #endif // __LESF_IPC_H__

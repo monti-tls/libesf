@@ -1,6 +1,6 @@
 PRODUCT   = libesf.so
 VERSION   = 1.0
-SUBDIRS   = examples/logserver examples/logapp
+SUBDIRS   = examples/logserver examples/logapp examples/ipc_cmd
 
 CC_FLAGS  = -fPIC -O0 -g -ggdb
 CC_FLAGS += -Wno-unused-parameter

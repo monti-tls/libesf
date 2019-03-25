@@ -176,6 +176,8 @@ void Endpoint::send(Message const& msg)
         LESF_CORE_THROW(SharedMemoryException, "IPC packet size (" << json.size()+1 << ") exceeds limit (" << sizeof(m_shared->send_buf->buffer) << ")");
     std::strcpy(m_shared->send_buf->buffer, json.c_str());
 
+    // std::cout << json << std::endl << std::endl;
+
     // Signal receiver that data is available
     m_shared->send_buf->mutex.post();
     m_shared->send_buf->sem_full.post();
