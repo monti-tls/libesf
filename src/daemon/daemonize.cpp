@@ -170,7 +170,6 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     if (lockf(daemon_data.lockfile_fd, F_TLOCK, 0) < 0)
     {
         syslog(LOG_USER | LOG_ERR, "lesf::daemon::daemonize: failed to lock pid lockfile %s (%m)", Config::LockFile);
-        std::cout << strerror(errno) << ")" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -205,7 +204,6 @@ void lesf::daemon::daemonize(std::function<Service*()> const& ctor)
     // Start service
     daemon_data.service = daemon_data.ctor();
     daemon_data.service->run();
-    daemon_data.service->stop();
     delete daemon_data.service;
 
     daemon_try_cleanup();

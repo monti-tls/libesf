@@ -65,14 +65,7 @@ int main(int argc, char** argv)
                 };
             }
             else
-            {
-                return SetZoom::Error
-                {
-                    .set = true,
-                    .code = 0,
-                    .message = "YOLO"
-                };
-            }
+                return SetZoom::Error("YOLO");
         });
 
     ///// Client /////

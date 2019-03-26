@@ -135,9 +135,15 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
         }; \
         struct Error \
         { \
+            Error() : \
+                set(false), message(), code(0) \
+            {} \
+            Error(std::string const& message, int code = -1) : \
+                set(true), message(message), code(code) \
+            {} \
             bool set; \
-            int code; \
             std::string message; \
+            int code; \
         }; \
         \
         typedef std::function<void(ResponseOrError<_name> const&, std::string const&)> ResponseHandler; \
@@ -162,11 +168,11 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
         class ResponseData : public ipc::Message \
         { \
             LESF_IPC_MESSAGE(ResponseData) \
-            LESF_IPC_MEMBERS(id, error.set, error.code, error.message REFLIST(_response)) \
+            LESF_IPC_MEMBERS(id, error.set, error.message, error.code REFLIST(_response)) \
         public: \
             ResponseData(std::string const& id, Response const& data) : \
                 id(id), \
-                error{false, 0, ""}, \
+                error(), \
                 data(data) \
             {} \
             ResponseData(std::string const& id, Error const& error) : \
@@ -235,7 +241,8 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
                 \
                 json::Template tpl; \
                 BINDINGS(_params) \
-                \
+                if (!tpl.bound()) \
+                    return Params{}; \
                 std::istringstream ss(json); \
                 json::Node* repr = json::parse(ss); \
                 tpl.extract(repr); \
@@ -243,18 +250,20 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
                 \
                 return std::move(data); \
             } catch (std::exception const& exc) { \
-                LESF_CORE_THROW(DataFormatException, "unable to construct parameters from JSON data for action " #_ns "::" #_name); \
+                LESF_CORE_THROW(DataFormatException, "unable to construct parameters from JSON data for action " #_ns "::" #_name ": " << exc.what()); \
             } \
         } \
         \
         static std::string serializeResponse(Response const& resp) \
         { \
             try { \
-                Response& data = const_cast<Response&>(resp); \
+                Response& __attribute__((unused)) data = const_cast<Response&>(resp); \
                 \
                 json::Template tpl; \
                 BINDINGS(_response) \
                 \
+                if (!tpl.bound()) \
+                    return "{}"; \
                 std::ostringstream ss; \
                 json::Node* repr = tpl.synthetize(); \
                 repr->serialize(ss, true); \
@@ -264,6 +273,33 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
             } catch (std::exception const& exc) { \
                 LESF_CORE_THROW(DataFormatException, "unable to serialize response for action " #_ns "::" #_name); \
             } \
+        } \
+        \
+        static std::string serializeError(Error const& err) \
+        { \
+            try { \
+                Error& data = const_cast<Error&>(err); \
+                \
+                json::Template tpl; \
+                tpl.bind("message", data.message); \
+                tpl.bind("code", data.code); \
+                \
+                std::ostringstream ss; \
+                json::Node* repr = tpl.synthetize(); \
+                repr->serialize(ss, true); \
+                delete repr; \
+                \
+                return ss.str(); \
+            } catch (std::exception const& exc) { \
+                LESF_CORE_THROW(DataFormatException, "unable to serialize error for action " #_ns "::" #_name); \
+            } \
+        } \
+        static std::string serializeResponseOrError(ResponseOrError<_name> const& roe)\
+        { \
+            if (roe.isError()) \
+                return serializeError(roe.getError()); \
+            else \
+                return serializeResponse(roe.getResponse()); \
         } \
     private: \
         void M_responseHandler(Endpoint&, ResponseData const& resp) \

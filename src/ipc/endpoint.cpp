@@ -112,14 +112,14 @@ Endpoint::Endpoint(Endpoint::Role role, std::string const& name) :
             m_shared->recv_buf = &m_shared->data->buffers[0];
 
             // Check if another client is already connected, if not acquire the client mutex
-            if (!m_shared->data->client_mutex.try_lock())
+            /*if (!m_shared->data->client_mutex.try_lock())
             {
                 delete m_shared->map;
                 delete m_shared->shm;
                 delete m_shared;
 
                 LESF_CORE_THROW(SharedMemoryException, "unable to open IPC endpoint `" << name << "` : another client is already connected");
-            }
+            }*/
 
         } catch (interprocess_exception const& exc) {
             LESF_CORE_THROW(SharedMemoryException, "unable to open IPC endpoint `" << name << "` : " << exc.what());
@@ -141,14 +141,14 @@ Endpoint::~Endpoint()
     // Delete shared memory object if we own it
     if (m_role == Server)
     {
-        m_shared->data->client_mutex.lock(); // wait for client to be done with the current operation, if any
-        m_shared->data->client_mutex.unlock();
+        /*m_shared->data->client_mutex.lock(); // wait for client to be done with the current operation, if any
+        m_shared->data->client_mutex.unlock();*/
         m_shared->data->~SharedData();
     }
     // Otherwise, allow other clients to connect by releasing the client mutex
     else
     {
-        m_shared->data->client_mutex.unlock();
+        // m_shared->data->client_mutex.unlock();
     }
 
     // Delete shared memory descriptors
