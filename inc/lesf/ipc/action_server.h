@@ -27,6 +27,90 @@
 
 namespace lesf { namespace ipc {
 
+namespace detail {
+    template <typename U, typename V>
+    class Either
+    {
+    private:
+        template <typename T> struct type {};
+
+    public:
+        Either(U&& u) :
+            m_u(std::make_shared<U>(std::move(u))),
+            m_v(0)
+        {}
+
+        Either(U const& u) :
+            m_u(std::make_shared<U>(u)),
+            m_v(0)
+        {}
+
+        Either(V&& v) :
+            m_u(0),
+            m_v(std::make_shared<V>(std::move(v)))
+        {}
+
+        Either(V const& v) :
+            m_u(0),
+            m_v(std::make_shared<V>(v))
+        {}
+
+
+        template <typename T>
+        bool is() const
+        { return M_is(type<T>()); }
+
+        template <typename T>
+        T const& get() const
+        { return M_get(type<T>()); }
+
+    private:
+        template <typename T>
+        bool M_is(type<T>) const
+        { return false; }
+
+        bool M_is(type<U>) const
+        { return m_u != nullptr; }
+
+        bool M_is(type<V>) const
+        { return m_v != nullptr; }
+
+        template <typename T>
+        T const& M_get(type<T>) const
+        { return *static_cast<T const*>(0); }
+
+        U const& M_get(type<U>) const
+        { return *m_u; }
+
+        V const& M_get(type<V>) const
+        { return *m_v; }
+
+    private:
+        std::shared_ptr<U> m_u;
+        std::shared_ptr<V> m_v;
+    };
+}
+
+template <typename T>
+class ResponseOrError : public detail::Either<typename T::Error,
+                                              typename T::Response>
+{
+    using detail::Either<typename T::Error, typename T::Response>::Either;
+
+public:
+    bool isResponse() const
+    { return this->template is<typename T::Response>(); }
+
+    bool isError() const
+    { return this->template is<typename T::Error>(); }
+
+    typename T::Response const& getResponse() const
+    { return this->template get<typename T::Response>(); }
+
+    typename T::Error const& getError() const
+    { return this->template get<typename T::Error>(); }
+};
+
 class ActionServer
 {
 public:
@@ -34,15 +118,19 @@ public:
     ~ActionServer();
 
     template <typename T>
-    void registerAction(std::function<std::function<typename T::Response(typename T::Params const&, std::string const&)>()> handler_factory)
+    void registerAction(std::function<ResponseOrError<T>(typename T::Params const&, std::string const&)> handler)
     {
         m_ep.registerSlot<typename T::ActionData>(
-            [handler_factory](Endpoint& ep, typename T::ActionData const& action)
+            [handler](Endpoint& ep, typename T::ActionData const& action)
             {
-                std::thread([&ep, handler_factory, action]()
+                std::thread([&ep, handler, action]()
                 {
-                    auto user_handler = handler_factory();
-                    ep.send(typename T::ResponseData(action.id, handler_factory()(action.data, action.id)));
+                    auto user_res = handler(action.data, action.id);
+
+                    if (user_res.template is<typename T::Error>())
+                        ep.send(typename T::ResponseData(action.id, user_res.template get<typename T::Error>()));
+                    else
+                        ep.send(typename T::ResponseData(action.id, user_res.template get<typename T::Response>()));
                 }).detach();
             });
     }

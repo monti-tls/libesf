@@ -133,8 +133,14 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
         { \
             DECLARE(_response) \
         }; \
+        struct Error \
+        { \
+            bool set; \
+            int code; \
+            std::string message; \
+        }; \
         \
-        typedef std::function<void(Response const&, std::string const&)> ResponseHandler; \
+        typedef std::function<void(ResponseOrError<_name> const&, std::string const&)> ResponseHandler; \
         \
     private: \
         class ActionData : public ipc::Message \
@@ -156,16 +162,22 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
         class ResponseData : public ipc::Message \
         { \
             LESF_IPC_MESSAGE(ResponseData) \
-            LESF_IPC_MEMBERS(id REFLIST(_response)) \
-            \
+            LESF_IPC_MEMBERS(id, error.set, error.code, error.message REFLIST(_response)) \
         public: \
             ResponseData(std::string const& id, Response const& data) : \
                 id(id), \
+                error{false, 0, ""}, \
                 data(data) \
+            {} \
+            ResponseData(std::string const& id, Error const& error) : \
+                id(id), \
+                error(error), \
+                data{} \
             {} \
             \
         public: \
             std::string id; \
+            Error error; \
             Response data; \
         }; \
         \
@@ -266,7 +278,12 @@ namespace lesf { namespace ipc { namespace user { namespace _ns { \
                 return; \
             } \
             \
-            it->second(resp.data, resp.id); \
+            std::shared_ptr<ResponseOrError<_name>> resp_or_err; \
+            if (resp.error.set) \
+                resp_or_err = std::make_shared<ResponseOrError<_name>>(resp.error); \
+            else \
+                resp_or_err = std::make_shared<ResponseOrError<_name>>(resp.data); \
+            it->second(*resp_or_err, resp.id); \
             m_internals.active_handlers.erase(it); \
         } \
     \

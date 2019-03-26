@@ -41,25 +41,38 @@ int main(int argc, char** argv)
 {
     Logger::init(argc, argv);
 
+    using namespace user::camera;
+
     ///// Server ///// 
     
     Endpoint* srv_ep = new Endpoint(Endpoint::Server, "ipc_cmd");
     ActionServer* srv = new ActionServer(*srv_ep);
 
-    srv->registerAction<user::camera::SetZoom>(
-        []()
+    int count = 0;
+    srv->registerAction<SetZoom>(
+        [&count](SetZoom::Params const& params, std::string const&)
+            -> ResponseOrError<SetZoom>
         {
-            return [](user::camera::SetZoom::Params const& params, std::string const&)
+            std::cout << "Processing action (foo=" << params.foo << ", bar=" << params.bar << ")" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            std::cout << "Done!" << std::endl;
+            if (count++ == 0)
             {
-                std::cout << "Processing action (foo=" << params.foo << ", bar=" << params.bar << ")" << std::endl;
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
-                std::cout << "Done!" << std::endl;
-                return user::camera::SetZoom::Response
+                return SetZoom::Response
                 {
                     .baz =true,
                     .bat = 453.12
                 };
-            };
+            }
+            else
+            {
+                return SetZoom::Error
+                {
+                    .set = true,
+                    .code = 0,
+                    .message = "YOLO"
+                };
+            }
         });
 
     ///// Client /////
@@ -67,17 +80,29 @@ int main(int argc, char** argv)
     auto ep = new Endpoint(Endpoint::Client, "ipc_cmd");
     int done = 0;
 
-    user::camera::SetZoom({123, "banana"}).async(ep,
-        [&done](user::camera::SetZoom::Response const& resp, std::string const& id)
+    SetZoom({123, "banana"}).async(ep,
+        [&done](ResponseOrError<SetZoom> const& resp_or_err, std::string const& id)
         {
-            std::cout << "[" << id << "] " << resp.baz << " (" << resp.bat << ")" << std::endl;
+            if (resp_or_err.isError())
+                std::cout << "[" << id << "] error: " << resp_or_err.getError().message << std::endl;
+            else
+            {
+                auto resp = resp_or_err.getResponse();
+                std::cout << "[" << id << "] " << resp.baz << " (" << resp.bat << ")" << std::endl;
+            }
             ++done;
         });
 
-    user::camera::SetZoom({666, "pineapple"}).async(ep,
-        [&done](user::camera::SetZoom::Response const& resp, std::string const& id)
+    SetZoom({666, "pineapple"}).async(ep,
+        [&done](ResponseOrError<SetZoom> const& resp_or_err, std::string const& id)
         {
-            std::cout << "[" << id << "] " << resp.baz << " (" << resp.bat << ")" << std::endl;
+            if (resp_or_err.isError())
+                std::cout << "[" << id << "]: error: " << resp_or_err.getError().message << std::endl;
+            else
+            {
+                auto resp = resp_or_err.getResponse();
+                std::cout << "[" << id << "] " << resp.baz << " (" << resp.bat << ")" << std::endl;
+            }
             ++done;
         });
 
