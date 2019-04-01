@@ -88,11 +88,10 @@ VER_INFO_OBJ  = $(patsubst %.$(C_EXT),%.o,$(VER_INFO_FILE))
 
 # Product files
 BINARY        = $(BIN_DIR)/$(PRODUCT)
-DIST          = $(BIN_DIR)/$(PRODUCT).tar.gz
 
 # Top-level
 .NOTPARALLEL: all
-all: binary  subdirs
+all: binary subdirs
 
 .PHONY: binary
 binary: $(LD_SCRIPT) $(BINARY)
@@ -117,10 +116,13 @@ subdirs:
 .PHONY: tar
 tar: clean $(DIST)
 
-.PHONY: $(DIST)
-$(DIST):
-	@mkdir -p $(@D)
-	@tar -cvzf $@ . --exclude $(@D) > /dev/null
+.PHONY: dist
+dist: binary
+	@[ -z "$(DIST_PREFIX)" ] && { echo "dist: DIST_PREFIX not set"; exit 1; } || true
+	@mkdir -p $(DIST_PREFIX)/$(DIST_DIR)
+	@echo "$(INDENT)(CP)      $$(basename $(BINARY)) -> $(DIST_PREFIX)/$(DIST_DIR)"
+	@cp $(BINARY) $(DIST_PREFIX)/$(DIST_DIR)
+	@[ -z "$(DIST_PP)" ] || { echo "(PP)      $$(basename $(BINARY))"; $(DIST_PP); }
 
 # Special targets
 
@@ -138,7 +140,7 @@ endef
 export ld_script_contents
 $(LD_SCRIPT):
 	@mkdir -p $(@D)
-	@echo "(GEN)     $@"
+	@echo "$(INDENT)(GEN)     $@"
 	@echo "$$ld_script_contents" >> $@
 
 define ver_info_file_contents
@@ -151,7 +153,7 @@ endef
 
 export ver_info_file_contents
 $(VER_INFO_FILE):
-	@echo "(GEN)     $@"
+	@echo "$(INDENT)(GEN)     $@"
 	@echo "$$ver_info_file_contents" >> $@
 
 # Dependencies
@@ -160,29 +162,29 @@ $(VER_INFO_FILE):
 # Translation
 $(BINARY): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
 	@mkdir -p $(@D)
-	@echo "(LD)      $@"
+	@echo "$(INDENT)(LD)      $@"
 	@$(LD) -o $@ $^ $(LD_FLAGS)
 
 $(TMP_DIR)/%.o: $(SRC_DIR)/%.$(C_EXT)
 	@mkdir -p $(@D)
-	@echo "(CC)      $<"
+	@echo "$(INDENT)(CC)      $<"
 	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
 
 $(TMP_DIR)/%.o: $(TMP_DIR)/%.$(C_EXT)
 	@mkdir -p $(@D)
-	@echo "(CC)      $<"
+	@echo "$(INDENT)(CC)      $<"
 	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
 
 $(TMP_DIR)/%.o: $(SRC_DIR)/%.$(S_EXT)
 	@mkdir -p $(@D)
-	@echo "(CC)      $<"
+	@echo "$(INDENT)(CC)      $<"
 	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
 
 # Format
 fmt-%: %.$(C_EXT)
 	@$(FMT) $(FMT_FLAGS) $<
-	@echo "(FMT)     $<"
+	@echo "$(INDENT)(FMT)     $<"
 
 fmt-%: %.$(H_EXT)
 	@$(FMT) $(FMT_FLAGS) $<
-	@echo "(FMT)     $<"
+	@echo "$(INDENT)(FMT)     $<"
