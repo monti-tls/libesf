@@ -67,8 +67,8 @@ define \n
 endef
 
 # Sources management
-C_SUB  = $(shell find $(SRC_DIR) -type d)
-H_SUB  = $(shell find $(INC_DIR) -type d)
+C_SUB  = $(shell find $(SRC_DIR) -type d 2>/dev/null)
+H_SUB  = $(shell find $(INC_DIR) -type d 2>/dev/null)
 
 C_SRC  = $(wildcard $(addsuffix /*.$(C_EXT),$(C_SUB)))
 C_OBJ  = $(patsubst $(SRC_DIR)/%.$(C_EXT),$(TMP_DIR)/%.o,$(C_SRC))
