@@ -122,7 +122,6 @@ dist: binary
 	@mkdir -p $(DIST_PREFIX)/$(DIST_DIR)
 	@echo "$(INDENT)(CP)      $$(basename $(BINARY)) -> $(DIST_PREFIX)/$(DIST_DIR)"
 	@cp $(BINARY) $(DIST_PREFIX)/$(DIST_DIR)
-	@[ -z "$(DIST_PP)" ] || { echo "(PP)      $$(basename $(BINARY))"; $(DIST_PP); }
 
 # Special targets
 
