@@ -35,19 +35,21 @@
 #include <boost/stacktrace/stacktrace.hpp>
 
 #define LESF_CORE_THROW(exc_type, msg) \
-    try { \
-        throw exc_type(lesf::core::Exception::BuildInfo{true, __FILE__, __LINE__, __FUNCTION__, \
-                                                        __DATE__, __TIME__, LESF_USER_BUILD_ID, LESF_USER_PROGRAM, LESF_USER_VERSION}, \
-                          lesf::core::Exception::DebugInfo{true, boost::stacktrace::stacktrace()}, \
-                          lesf::core::Exception::InfoStringBuilder() << msg); \
-    } catch(lesf::core::Exception const& exc) { \
-        throw; \
-    } catch(std::exception const& exc) { \
-        throw exc_type(lesf::core::Exception::BuildInfo{true, __FILE__, __LINE__, __FUNCTION__, \
-                                                        __DATE__, __TIME__, LESF_USER_BUILD_ID, LESF_USER_PROGRAM, LESF_USER_VERSION}, \
-                          lesf::core::Exception::DebugInfo{true, boost::stacktrace::stacktrace()}, \
-                          "<unable to construct description string> `" #msg "'"); \
-    }
+    do { \
+        try { \
+            throw exc_type(lesf::core::Exception::BuildInfo{true, __FILE__, __LINE__, __FUNCTION__, \
+                                                            __DATE__, __TIME__, LESF_USER_BUILD_ID, LESF_USER_PROGRAM, LESF_USER_VERSION}, \
+                              lesf::core::Exception::DebugInfo{true, boost::stacktrace::stacktrace()}, \
+                              lesf::core::Exception::InfoStringBuilder() << msg); \
+        } catch(lesf::core::Exception const& exc) { \
+            throw; \
+        } catch(std::exception const& exc) { \
+            throw exc_type(lesf::core::Exception::BuildInfo{true, __FILE__, __LINE__, __FUNCTION__, \
+                                                            __DATE__, __TIME__, LESF_USER_BUILD_ID, LESF_USER_PROGRAM, LESF_USER_VERSION}, \
+                              lesf::core::Exception::DebugInfo{true, boost::stacktrace::stacktrace()}, \
+                              "<unable to construct description string> `" #msg "'"); \
+        } \
+    } while (0)
 
 namespace lesf { namespace core {
 
