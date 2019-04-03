@@ -16,6 +16,8 @@
 # along with libesf.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# Cross-compilation
+
 # Tools
 CCP    ?= g++
 FMT     = clang-format
