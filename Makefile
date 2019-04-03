@@ -17,8 +17,7 @@
 #
 
 # Tools
-CC      = g++
-LD      = g++
+CCP    ?= g++
 FMT     = clang-format
 UUIDGEN = dbus-uuidgen
 # UUIDGEN = cat /proc/sys/kernel/random/uuid
@@ -162,22 +161,22 @@ $(VER_INFO_FILE):
 $(BINARY): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
 	@mkdir -p $(@D)
 	@echo "$(INDENT)(LD)      $@"
-	@$(LD) -o $@ $^ $(LD_FLAGS)
+	@$(CCP) -o $@ $^ $(LD_FLAGS)
 
 $(TMP_DIR)/%.o: $(SRC_DIR)/%.$(C_EXT)
 	@mkdir -p $(@D)
 	@echo "$(INDENT)(CC)      $<"
-	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
+	@$(CCP) $(CC_FLAGS) -MMD -c $< -o $@
 
 $(TMP_DIR)/%.o: $(TMP_DIR)/%.$(C_EXT)
 	@mkdir -p $(@D)
 	@echo "$(INDENT)(CC)      $<"
-	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
+	@$(CCP) $(CC_FLAGS) -MMD -c $< -o $@
 
 $(TMP_DIR)/%.o: $(SRC_DIR)/%.$(S_EXT)
 	@mkdir -p $(@D)
 	@echo "$(INDENT)(CC)      $<"
-	@$(CC) $(CC_FLAGS) -MMD -c $< -o $@
+	@$(CCP) $(CC_FLAGS) -MMD -c $< -o $@
 
 # Format
 fmt-%: %.$(C_EXT)
