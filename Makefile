@@ -88,14 +88,22 @@ VER_INFO_FILE = $(TMP_DIR)/$(PRODUCT).lesf_verinfo.$(C_EXT)
 VER_INFO_OBJ  = $(patsubst %.$(C_EXT),%.o,$(VER_INFO_FILE))
 
 # Product files
-BINARY        = $(BIN_DIR)/$(PRODUCT)
+ifneq ($(filter lib%,$(PRODUCT)),)
+EXECUTABLE :=
+ARCHIVE    := $(BIN_DIR)/$(PRODUCT).a
+LIBRARY    := $(BIN_DIR)/$(PRODUCT).so
+else
+EXECUTABLE := $(BIN_DIR)/$(PRODUCT)
+ARCHIVE    :=
+LIBRARY    :=
+endif
 
 # Top-level
 .NOTPARALLEL: all
 all: binary subdirs
 
 .PHONY: binary
-binary: $(LD_SCRIPT) $(BINARY)
+binary: $(LD_SCRIPT) $(EXECUTABLE) $(ARCHIVE) $(LIBRARY)
 
 .PHONY: doxygen
 doxygen:
@@ -121,8 +129,11 @@ tar: clean $(DIST)
 dist: binary
 	@[ -z "$(DIST_PREFIX)" ] && { echo "dist: DIST_PREFIX not set"; exit 1; } || true
 	@mkdir -p $(DIST_PREFIX)/$(DIST_DIR)
-	@echo "$(INDENT)(CP)      $$(basename $(BINARY)) -> $(DIST_PREFIX)/$(DIST_DIR)"
-	@cp $(BINARY) $(DIST_PREFIX)/$(DIST_DIR)
+	@for i in $$(echo "$(EXECUTABLE) $(ARCHIVE) $(LIBRARY)" | sed 's/ / /'); \
+		do \
+			echo "$(INDENT)(CP)      $$(basename $$i) -> $(DIST_PREFIX)/$(DIST_DIR)"; \
+			cp $$i $(DIST_PREFIX)/$(DIST_DIR); \
+	done
 
 # Special targets
 
@@ -160,10 +171,26 @@ $(VER_INFO_FILE):
 -include $(C_DEP)
 
 # Translation
-$(BINARY): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
+ifneq ($(EXECUTABLE),)
+$(EXECUTABLE): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
 	@mkdir -p $(@D)
 	@echo "$(INDENT)(LD)      $@"
 	@$(CCP) -o $@ $^ $(LD_FLAGS)
+endif
+
+ifneq ($(ARCHIVE),)
+$(ARCHIVE): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
+	@mkdir -p $(@D)
+	@echo "$(INDENT)(AR)      $@"
+	@$(AR) rcs $@ $^
+endif
+
+ifneq ($(LIBRARY),)
+$(LIBRARY): $(VER_INFO_OBJ) $(C_OBJ) $(S_OBJ)
+	@mkdir -p $(@D)
+	@echo "$(INDENT)(LD)      $@"
+	@$(CCP) -shared -o $@ $^ $(LD_FLAGS)
+endif
 
 $(TMP_DIR)/%.o: $(SRC_DIR)/%.$(C_EXT)
 	@mkdir -p $(@D)
